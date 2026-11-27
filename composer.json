@@ -1,0 +1,21 @@
+{
+    "name": "yoya/io_ttf",
+    "type": "library",
+    "description": "TrueType font (TTF) table directory parser library",
+    "keywords": ["ttf", "truetype", "font"],
+    "homepage": "https://github.com/yoya/IO_TTF",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "yoya",
+            "email": "yoya@awm.jp"
+        }
+    ],
+    "require": {
+        "php": ">=5.4.0",
+        "yoya/io_bit": "^4.0"
+    },
+    "autoload": {
+        "psr-0": { "IO_TTF": "." }
+    }
+}
