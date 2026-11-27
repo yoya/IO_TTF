@@ -67,5 +67,43 @@ check('dump: exit status', 0, $status);
 check('dump: no warnings', '', $stderr);
 check('dump: output', "tag:OS/2 checkSum:305419896 offset:44 length:96\ntag:cmap checkSum:4294967295 offset:140 length:3532\n", $stdout);
 
+/*
+ * Composer install: IO_Bit from vendor/autoload.php, repo not on include_path
+ */
+$proj = sys_get_temp_dir().'/iottf_'.getmypid();
+@mkdir($proj.'/vendor', 0777, true);
+$bitdir = dirname(dirname(stream_resolve_include_path('IO/Bit.php')));
+file_put_contents($proj.'/vendor/autoload.php', '<?php
+spl_autoload_register(function ($class) {
+    foreach ('.var_export(array($bitdir, $root), true).' as $dir) {
+        $file = $dir."/".str_replace("_", "/", $class).".php";
+        if (is_readable($file)) { require_once $file; return; }
+    }
+});
+');
+file_put_contents($proj.'/test.ttf', $basic);
+list($status, $stdout, $stderr) = runPHP(array($root.'/sample/ttfdump.php', '-f', 'test.ttf'), '', '.', $proj);
+check('composer: sample exit status', 0, $status);
+check('composer: sample no warnings', '', $stderr);
+check('composer: sample output', true, strpos($stdout, "tag:cmap checkSum:4294967295 offset:140 length:3532") !== false);
+list($status, $stdout, $stderr) = runPHP(array('-r', 'require "vendor/autoload.php"; $t = new IO_TTF(); $t->parse(file_get_contents("test.ttf")); echo count($t->_table);'), '', '.', $proj);
+check('composer: autoload', '2', $stdout);
+unlink($proj.'/test.ttf');
+unlink($proj.'/vendor/autoload.php');
+rmdir($proj.'/vendor');
+rmdir($proj);
+
+/*
+ * ttfdump.php loads IO/TTF.php next to itself, not another copy on include_path
+ */
+$other = sys_get_temp_dir().'/iottf_inc_'.getmypid();
+@mkdir($other.'/IO', 0777, true);
+file_put_contents($other.'/IO/TTF.php', '<?php class IO_TTF { function parse($d, $o = array()) { echo "other copy"; } function dump() { } }');
+list($status, $stdout, $stderr) = runPHP(array($root.'/sample/ttfdump.php', '-f', '-'), $basic, $other.PATH_SEPARATOR.$bitdir, sys_get_temp_dir());
+check('sample: own IO/TTF.php', true, strpos($stdout, "tag:OS/2") === 0);
+unlink($other.'/IO/TTF.php');
+rmdir($other.'/IO');
+rmdir($other);
+
 echo "passed: $passed, failed: $failed".PHP_EOL;
 exit($failed ? 1 : 0);
