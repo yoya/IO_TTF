@@ -13,6 +13,7 @@ if (is_readable('vendor/autoload.php')) {
 }
 
 class IO_TTF {
+    var $_scalerType = null;
     var $_table = [];
     function parse($ttfdata, $opts = array()) {
         $bit = new IO_Bit();
