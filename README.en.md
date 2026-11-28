@@ -83,6 +83,7 @@ When running without Composer, add the directories where you put each library to
 - It only reads the table directory. The contents of each table are not interpreted, and there is no build.
 - `checkSum` is read but not verified.
 - The sfnt version is not checked. The TrueType Collection (.ttc, `ttcf`) format is not supported.
+- WOFF and WOFF2 (`wOFF`, `wOF2`) are not supported. No error is raised, and a wrong table directory is returned (for WOFF, for example, a single table with no name).
 - The `_scalerType` property holds `true`, not the sfnt version value.
 - ttfdump.php accepts the `-h`, `-v` and `-d` options, but they do not change the output for now.
 - Calling `parse()` twice on the same object appends to `_table`.
